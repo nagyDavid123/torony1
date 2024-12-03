@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Javított Toronyépítő Játék</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', monospace;
+            background: linear-gradient( #140a2d, #16a085);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+            flex-direction: column;
+        }
+        
+        #jatekKontener {
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        #jatekalap {
+            border: none;
+            background: linear-gradient(to bottom, #ecf0f1, #bdc3c7);
+            display: block;
+            border-radius: 10px;
+        }
+        
+        #pontszamjelzo {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 32px; /* Nagyobb szövegméret */
+            font-weight: bold;
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.8); /* Sötétebb háttér a kontrasztért */
+            padding: 15px 25px; /* Több belső térköz a jobb láthatóságért */
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            z-index: 10; /* Biztosítja, hogy minden elem fölött legyen */
+            border: 3px solid #fff; /* Vastagabb fehér keret */
+            min-width: 150px; /* Minimális szélesség, hogy ne legyen túl keskeny */
+        }
+        
+        #maxPontszamjelzo {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="jatekKontener">
+        <div id="pontszamjelzo">Pontszám: 0</div>
+        <canvas id="jatekalap" width="500" height="500"></canvas>
+    </div>
+    <div id="maxPontszamjelzo">Maximális Pontszám: 0</div>
+
+    <script>
+        const alap = document.getElementById('jatekalap');
+        const blokstyle = alap.getContext('2d');
+        const pontszamjelzo = document.getElementById('pontszamjelzo');
+        const maxPontszamjelzo = document.getElementById('maxPontszamjelzo');
+        let pontszam = 0;
+        let maxPontszam = localStorage.getItem('maxPontszam') ? parseInt(localStorage.getItem('maxPontszam')) : 0;
+        let blokkok = [];
+        let aktualisBlokk = null;
+        let jatekFut = true;
+
+        const blokkMagassag = 24;
+        let blokkSebesseg = 2;
+        let blokkSzin = '#16a085';
+
+        // Frissítjük a maximális pontszám kijelzését
+        maxPontszamjelzo.textContent = `Maximális Pontszám: ${maxPontszam}`;
+
+        function blokkLetrehozasa(szelesseg) {
+            const x = Math.random() * (alap.width - szelesseg);
+            const y = blokkok.length === 0 ? alap.height - blokkMagassag : blokkok[blokkok.length - 1].y - blokkMagassag;
+            return {x, y, szelesseg, magassag: blokkMagassag, irany: 1};
+        }
+
+        function blokkRajzolasa(blokk) {
+            blokstyle.fillStyle = blokkSzin;
+            blokstyle.fillRect(blokk.x, blokk.y, blokk.szelesseg, blokk.magassag);
+        }
+
+        function blokkMozgatasa(blokk) {
+            blokk.x += blokkSebesseg * blokk.irany;
+            if (blokk.x <= 0 || blokk.x + blokk.szelesseg >= alap.width) {
+                blokk.irany *= -1;
+            }
+        }
+
+        function jatekCiklus() {
+            blokstyle.clearRect(0, 0, alap.width, alap.height);
+            
+            blokkok.forEach(blokkRajzolasa);
+            
+            if (aktualisBlokk) {
+                blokkMozgatasa(aktualisBlokk);
+                blokkRajzolasa(aktualisBlokk);
+            }
+            
+            if (jatekFut) {
+                requestAnimationFrame(jatekCiklus);
+            }
+        }
+
+        function blokkLerakasa() {
+            if (!aktualisBlokk) return;
+
+            const utolsoBlokk = blokkok[blokkok.length - 1];
+            if (utolsoBlokk) {
+                const atfedes = Math.min(
+                    utolsoBlokk.x + utolsoBlokk.szelesseg, 
+                    aktualisBlokk.x + aktualisBlokk.szelesseg
+                ) - Math.max(utolsoBlokk.x, aktualisBlokk.x);
+                
+                if (atfedes <= 0) {
+                    jatekVege();
+                    return;
+                }
+
+                aktualisBlokk.szelesseg = atfedes;
+                aktualisBlokk.x = Math.max(utolsoBlokk.x, aktualisBlokk.x);
+            }
+
+            blokkok.push(aktualisBlokk);
+            pontszam++;
+            pontszamjelzo.textContent = `Pontszám: ${pontszam}`;
+
+            if (pontszam === 10) {
+                document.body.style.backgroundColor = '#16a085';
+                blokkSzin = '#140a2d';
+            }
+
+            if (pontszam >= 10) {
+                blokkok.shift();
+                blokkok.forEach(blokk => blokk.y += blokkMagassag);
+            }
+
+            if (pontszam > maxPontszam) {
+                maxPontszam = pontszam;
+                maxPontszamjelzo.textContent = `Maximális Pontszám: ${maxPontszam}`;
+                localStorage.setItem('maxPontszam', maxPontszam); // Mentés a helyi tárolóba
+            }
+
+            aktualisBlokk = blokkLetrehozasa(aktualisBlokk.szelesseg);
+            blokkSebesseg += 0.1;
+        }
+
+        function jatekVege() {
+            jatekFut = false;
+            alert(`Játék vége! Pontszám: ${pontszam}`);
+            location.reload();
+        }
+
+        alap.addEventListener('click', blokkLerakasa);
+
+        aktualisBlokk = blokkLetrehozasa(alap.width / 3);
+        jatekCiklus();
+    </script>
+</body>
+</html>
