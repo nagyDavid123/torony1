@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="hu">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Javított Toronyépítő Játék</title>
+    <title>Toronyépítő Játék</title>
     <style>
         body {
             margin: 0;
             padding: 0;
             font-family: 'Courier New', monospace;
-            background: linear-gradient( #140a2d, #16a085);
+            background: linear-gradient(#140a2d, #16a085);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -17,38 +18,44 @@
             color: #fff;
             flex-direction: column;
         }
-        
+
         #jatekKontener {
             position: relative;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             border-radius: 10px;
             overflow: hidden;
         }
-        
+
         #jatekalap {
             border: none;
             background: linear-gradient(to bottom, #ecf0f1, #bdc3c7);
             display: block;
             border-radius: 10px;
         }
-        
+
         #pontszamjelzo {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 32px; /* Nagyobb szövegméret */
+            font-size: 32px;
+            /* Nagyobb szövegméret */
             font-weight: bold;
             color: #fff;
-            background-color: rgba(0, 0, 0, 0.8); /* Sötétebb háttér a kontrasztért */
-            padding: 15px 25px; /* Több belső térköz a jobb láthatóságért */
+            background-color: rgba(0, 0, 0, 0.8);
+            /* Sötétebb háttér a kontrasztért */
+            padding: 15px 25px;
+            /* Több belső térköz a jobb láthatóságért */
             border-radius: 15px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             text-align: center;
-            z-index: 10; /* Biztosítja, hogy minden elem fölött legyen */
-            border: 3px solid #fff; /* Vastagabb fehér keret */
-            min-width: 150px; /* Minimális szélesség, hogy ne legyen túl keskeny */
+            z-index: 10;
+            /* Biztosítja, hogy minden elem fölött legyen */
+            border: 3px solid #fff;
+            /* Vastagabb fehér keret */
+            min-width: 150px;
+            /* Minimális szélesség, hogy ne legyen túl keskeny */
         }
-        
+
         #maxPontszamjelzo {
             margin-top: 20px;
             font-size: 24px;
@@ -61,6 +68,7 @@
         }
     </style>
 </head>
+
 <body>
     <div id="jatekKontener">
         <div id="pontszamjelzo">Pontszám: 0</div>
@@ -74,7 +82,13 @@
         const pontszamjelzo = document.getElementById('pontszamjelzo');
         const maxPontszamjelzo = document.getElementById('maxPontszamjelzo');
         let pontszam = 0;
-        let maxPontszam = localStorage.getItem('maxPontszam') ? parseInt(localStorage.getItem('maxPontszam')) : 0;
+        let maxPontszam;
+
+        if (localStorage.getItem('maxPontszam')) {
+            maxPontszam = parseInt(localStorage.getItem('maxPontszam'));
+        } else {
+            maxPontszam = 0;
+        }
         let blokkok = [];
         let aktualisBlokk = null;
         let jatekFut = true;
@@ -89,7 +103,7 @@
         function blokkLetrehozasa(szelesseg) {
             const x = Math.random() * (alap.width - szelesseg);
             const y = blokkok.length === 0 ? alap.height - blokkMagassag : blokkok[blokkok.length - 1].y - blokkMagassag;
-            return {x, y, szelesseg, magassag: blokkMagassag, irany: 1};
+            return { x, y, szelesseg, magassag: blokkMagassag, irany: 1 };
         }
 
         function blokkRajzolasa(blokk) {
@@ -106,14 +120,14 @@
 
         function jatekCiklus() {
             blokstyle.clearRect(0, 0, alap.width, alap.height);
-            
+
             blokkok.forEach(blokkRajzolasa);
-            
+
             if (aktualisBlokk) {
                 blokkMozgatasa(aktualisBlokk);
                 blokkRajzolasa(aktualisBlokk);
             }
-            
+
             if (jatekFut) {
                 requestAnimationFrame(jatekCiklus);
             }
@@ -125,10 +139,10 @@
             const utolsoBlokk = blokkok[blokkok.length - 1];
             if (utolsoBlokk) {
                 const atfedes = Math.min(
-                    utolsoBlokk.x + utolsoBlokk.szelesseg, 
+                    utolsoBlokk.x + utolsoBlokk.szelesseg,
                     aktualisBlokk.x + aktualisBlokk.szelesseg
                 ) - Math.max(utolsoBlokk.x, aktualisBlokk.x);
-                
+
                 if (atfedes <= 0) {
                     jatekVege();
                     return;
